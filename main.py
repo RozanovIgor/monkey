@@ -20,7 +20,7 @@ params = {
 connection = psycopg2.connect(
         host = 'localhost',
         user = 'postgres',
-        password = 'password',
+        password = '3t3vdeMb',
         dbname = 'postgres',
         port = 5432
 )
@@ -175,7 +175,31 @@ class Database:
     def get_user_statistics(self):
         global current_user_id
         cursor = self.connection.cursor()
-        cursor.execute("""SELECT (symbol) FROM monkey WHERE monkey_user_id = %s""",(current_user_id)) #выбрать все позиции портфелей клиента по его id - много SELECT?
+        cursor.execute("""SELECT SUM(currency_prices.current_price * user_portfolio_details.quantity)
+                       FROM user_portfolio_details 
+                       INNER JOIN user_portfolio ON user_portfolio_details.user_portfolio_id = user_portfolio.user_portfolio_id
+                       INNER JOIN monkey_users ON user_portfolio.monkey_user_id = monkey_users.monkey_user_id
+                       LEFT JOIN currency_prices ON user_portfolio_details.symbol = currency_prices.symbol
+                       WHERE user_portfolio.monkey_user_id = %s""",(current_user_id,)) #выбрать все позиции портфелей клиента по его id - много SELECT?
+        user_portfolio_sum = cursor.fetchall()[0][0]
+        print(user_portfolio_sum)
+        cursor.execute("""SELECT COUNT(user_portfolio_id)
+                       FROM user_portfolio
+                       WHERE user_portfolio.monkey_user_id = %s""",(current_user_id,))
+        user_portfolio_count = cursor.fetchone()[0]
+        print(user_portfolio_count)
+        cursor.execute("""SELECT SUM(currency_prices.current_price * monkey_portfolio_details.quantity)
+                       FROM monkey_portfolio_details 
+                       INNER JOIN user_portfolio ON monkey_portfolio_details.user_portfolio_id = user_portfolio.user_portfolio_id
+                       INNER JOIN monkey_users ON user_portfolio.monkey_user_id = monkey_users.monkey_user_id
+                       LEFT JOIN currency_prices ON monkey_portfolio_details.symbol = currency_prices.symbol
+                       WHERE user_portfolio.monkey_user_id = %s""",(current_user_id,))
+        monkey_portfolio_value = cursor.fetchone()[0]
+        print(monkey_portfolio_value)
+        return(f'У вас  {user_portfolio_count} портфелей на сумму {round(user_portfolio_sum,2)} у обезъяны портфель на сумму {round(monkey_portfolio_value,2)}')
+        # cursor.execute("""SELECT (symbol,current_price) FROM currency_prices""")
+        # currency_price = cursor.fetchall()
+        # print(currency_price)
 
 
 
@@ -217,7 +241,7 @@ def registration_screen():
     entry_new_user.pack()
 
     ttk.Button(text="Зарегистрироваться",
-                command=lambda: database.enter_registration_data(entry_new_user.get(),)).pack()
+                command=lambda: database.enter_registration_data(entry_new_user.get(), switch_frame(user_screen))).pack()
     
 def login_screen():
     ttk.Label(text="Введите логин").pack()
@@ -232,6 +256,11 @@ def user_screen():
     ttk.Label(text=f"Hello user, {current_user}").pack()
     ttk.Button(text="Создать портфель", command=lambda: switch_frame(portfolio_create_screen)).pack()
     ttk.Button(text="Посмотреть статистику ", command= lambda: switch_frame(statistics_screen)).pack()
+    ttk.Button(text='Назад', command=lambda: switch_frame(login_screen)).pack()
+
+def statistics_screen():
+    ttk.Label(text=f"Hello user, {current_user}").pack()
+    ttk.Label(text=f'{database.get_user_statistics()}').pack() 
     ttk.Button(text='Назад', command=lambda: switch_frame(login_screen)).pack()
 
 def portfolio_create_screen():

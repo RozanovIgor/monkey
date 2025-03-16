@@ -1,0 +1,27 @@
+from tkinter import *
+from tkinter import ttk
+import tkinter as tk
+import json
+from tkinter.messagebox import showerror, showwarning, showinfo
+import psycopg2
+import random
+# from config import host,user, password, dbname, port
+import locale
+import sys
+
+current_user = {}
+current_user_id = {}
+new_portfolio = []
+current_portfolio_id = {}
+
+class Database:
+    def __init__(self):
+        self.connection = psycopg2.connect(
+        host = 'localhost',
+        user = 'postgres',
+        password = '3t3vdeMb',
+        dbname = 'postgres',
+        port = 5432
+        )
+
+    def 
