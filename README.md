@@ -44,7 +44,9 @@ create table users_portfolio_details(
 
 
 
--- Схема полностью соответствует users_portfolio_details, т.к логика в том, что портфель обезьяны тоже привязан к конкретному человеку, просто здесь будут другие market_data_id и part_percent
+-- Схема полностью соответствует users_portfolio_details, 
+-- т.к логика в том, что портфель обезьяны тоже привязан к конкретному человеку, 
+-- просто здесь будут другие market_data_id и part_percent
 create table monkeys_portfolio_details(
     id serial not null primary key ,
     user_id int not null,
